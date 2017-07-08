@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<title>Tianguis Wars</title>
+
+	<link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+	<link href="dist/css/sb-admin-2.css" rel="stylesheet">
+
+	<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+	<link rel="manifest" href="favicon/manifest.json">
+	<link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5">
+	<link rel="shortcut icon" href="favicon/favicon.ico">
+	<meta name="msapplication-config" content="favicon/browserconfig.xml">
+	<meta name="theme-color" content="#ffffff">
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+	<!--[if lt IE 9]>
+	<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+	<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+	<![endif]-->
+</head>
+
+<body ng-app="campus" ng-controller="campusCtrl">
+	<div class="container">
+	<div class="row">
+		<div class="col-md-4 col-md-offset-4">
+		<div class="login-panel panel panel-default">
+			<div class="panel-heading">
+			<h3 class="panel-title center"><strong>Tianguis Wars</strong><br>
+				Hora {{ gameState.currentDay }}/{{ maxDay }} ({{ remainingTime }} para siguiente hora)<br>
+				Tienes <strong>${{ gameState.money }}</strong> / Meta: <strong>$5,000</strong>
+			</h3>
+			</div>
+			<div class="panel-body">
+			<form role="form">
+				<fieldset>
+				<div class="panel-group" id="accordion">
+					<div class="panel panel-default" ng-repeat="(key, e) in elements">
+						<div class="panel-heading">
+							<a class="panel-title" data-toggle="collapse" data-parent="#accordion" href="#{{ key }}">
+								<h4 class="panel-title">
+								{{ e.name }} <strong>${{ gameState.elements[key].currentVal }}</strong> (${{ e.min }}-${{ e.max }})
+								</h4>
+							</a>
+						</div>
+						<div id="{{ key }}" class="panel-collapse collapse">
+							<div class="panel-body">
+								Tienes {{ gameState.elements[key].amount }}<br>
+
+								Puedes comprar {{ gameState.money / gameState.elements[key].currentVal | floor }}
+								<div class="form-group">
+									<label>¿Cuantos?</label><br>
+									<!--
+									<input class="form-control" style="width: 60px; display: inline;" ng-model="e.amount" ng-pattern="/^[0-9]*$/" value="0">
+									&nbsp;
+									<input class="slider" id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="{{ gameState.money / gameState.elements[key].currentVal | floor }}" data-slider-step="1" data-slider-value="0" ng-model="e.amount">
+									-->
+
+									<input class="form-control" style="width: 60px; display: inline;" ng-model="e.amount" ng-pattern="/^[0-9]*$/">
+									<button type="button" class="btn btn-success" ng-click="buy(key)">Comprar</button>
+									<button type="button" class="btn btn-danger" ng-click="sell(key)">Vender</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<a class="panel-title" data-toggle="collapse" data-parent="#accordion" href="#options">
+								<h4 class="panel-title">
+								Opciones
+								</h4>
+							</a>
+						</div>
+						<div id="options" class="panel-collapse collapse">
+							<div class="panel-body">
+								<div class="form-group">
+									<button type="button" class="btn btn-danger" ng-click="resetGame()">Reiniciar juego</button>
+									<button type="button" class="btn btn-primary" ng-click="showCredits()">Agradecimientos</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal fade" id="intro" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h4 class="modal-title" id="myModalLabel">Bienvenido a Tianguis Wars</h4>
+								<img src="dist/img/logote.jpg"><br>
+							</div>
+							<div class="modal-body">
+								Ahora vender en el Campus es ilegal. ¡Una nueva batalla ha comenzado!<br><br>
+								Logra la mayor ganancia antes de que te saquen del evento y pon en alto a todos los vendedores ilegales.
+								<br><br>
+								Debes lograr ganar <strong>$5,000</strong> antes de que se acabe el tiempo y tu familia te considere una deshonrra.
+								<br><br>
+								¡Compra basura y vende a incautos!
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-primary" data-dismiss="modal">¡A vender!</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal fade" id="credits" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h4 class="modal-title" id="myModalLabel">Agradecimientos</h4>
+							</div>
+							<div class="modal-body">
+								<strong>Logo</strong> René Dávila<br>
+								<strong>Chingar con el código</strong> Daniel Orozco H<br>
+								<strong>Programación</strong> <a href="https://twitter.com/eaplmx">@eaplmx</a><br><br>
+
+								Hecho con ❤ (del bueno)<br>
+								¡Gracias por jugar!
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-primary" data-dismiss="modal">¡Ya pues!</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+			</div>
+		</div>
+		</div>
+	</div>
+	</div>
+
+
+<!--
+<script src="dist/js/jquery-ui.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.8.1/bootstrap-slider.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+-->
+
+<script src="vendor/jquery/jquery.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<script src="vendor/metisMenu/metisMenu.min.js"></script>
+<script src="dist/js/sb-admin-2.min.js"></script>
+<script src="dist/js/angular.min.js"></script>
+<script>
+$(function() {
+	$('#intro').modal('show')
+});
+
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga')
+ga('create', 'UA-102040200-1', 'auto')
+ga('send', 'pageview')
+
+var app = angular.module('campus', [])
+
+app.filter('floor', function() {
+	return function(input) {
+		return Math.floor(input)
+	}
+})
+
+app.controller('campusCtrl', ['$scope', '$interval', function($scope, $interval) {
+	function randomInt(min, max) {
+		return Math.floor(Math.random() * (max - min + 1) + min)
+	}
+
+	function generateCurrentValues(elements) {
+
+		for (var key in elements) {
+			if (elements.hasOwnProperty(key)) {
+				if (!$scope.gameState.elements[key]) {
+					$scope.gameState.elements[key] = {}
+					$scope.gameState.elements[key].amount = 0
+				}
+
+				$scope.gameState.elements[key]['currentVal'] =
+					randomInt(elements[key]['min'], elements[key]['max'])
+			}
+		}
+	}
+
+	$scope.elements = {
+		1: {
+			name: 'Stickers',
+			min: 7,
+			max: 25,
+			exc_min: 5,
+			exc_max: 35,
+		},
+		2: {
+			name: 'Sopa dañina',
+			min: 10,
+			max: 20,
+			exc_min: 5,
+			exc_max: 30,
+		},
+		3: {
+			name: 'Vive1000',
+			min: 15,
+			max: 20,
+			exc_min: 10,
+			exc_max: 35,
+		},
+		4: {
+			name: 'SimiCondo',
+			min: 25,
+			max: 45,
+			exc_min: 15,
+			exc_max: 55,
+		},
+		5: {
+			name: 'Spinner inútil',
+			min: 70,
+			max: 120,
+			exc_min: 30,
+			exc_max: 180,
+		},
+		6: {
+			name: 'Playera vieja',
+			min: 120,
+			max: 180,
+			exc_min: 100,
+			exc_max: 220,
+		},
+		7: {
+			name: 'USB China',
+			min: 300,
+			max: 380,
+			exc_min: 130,
+			exc_max: 510,
+		},
+		8: {
+			name: 'Peluche chino',
+			min: 200,
+			max: 400,
+			exc_min: 150,
+			exc_max: 605,
+		},
+		9: {
+			name: 'Santo grial',
+			min: 3000,
+			max: 5000,
+			exc_min: 2500,
+			exc_max: 5500,
+		},
+	}
+
+	$scope.getNewPrices = function() {
+		generateCurrentValues($scope.elements)
+	}
+
+	$scope.resetGameState = function() {
+		$scope.gameState = {
+			currentDay: 1,
+			money: 50,
+			elements: {},
+		}
+
+		$scope.getNewPrices()
+	}
+
+	$scope.resetTimer = function() {
+		$scope.remainingTime = initialTime
+	}
+
+	$scope.stopTimer = function() {
+		if (angular.isDefined(stop)) {
+			$interval.cancel(stop)
+			stop = undefined
+		}
+	}
+
+	$scope.start = function() {
+		stop = $interval(function() {
+			// Decrease time only if we have remaining days
+			if ($scope.gameState.currentDay <= $scope.maxDay) {
+				$scope.remainingTime -= 1
+			}
+
+			if ($scope.remainingTime < 0) {
+				$scope.gameState.currentDay += 1
+				$scope.getNewPrices()
+
+				localStorage.setItem('state', JSON.stringify($scope.gameState))
+
+				/*
+				if ($scope.gameState.currentDay > $scope.maxDay) {
+					$scope.stopTimer()
+				}
+				*/
+
+				$scope.resetTimer()
+			}
+		}, 1000)
+	}
+
+	$scope.resetGame = function() {
+		localStorage.removeItem('state')
+		$scope.resetGameState()
+		$scope.getNewPrices()
+		$scope.resetTimer()
+	}
+
+	$scope.buy = function(elementID) {
+		//console.log(elementID)
+		//console.log($scope.elements[elementID].amount)
+		var amountToSpend = $scope.gameState.elements[elementID].currentVal * $scope.elements[elementID].amount
+
+		if ($scope.gameState.money >= amountToSpend) {
+			$scope.gameState.money -= amountToSpend
+			$scope.gameState.elements[elementID].amount += Math.floor($scope.elements[elementID].amount)
+		}
+	}
+
+	$scope.sell = function(elementID) {
+		// $scope.elements[elementID].amount = amount from the Input Box
+		if ($scope.gameState.elements[elementID].amount >= $scope.elements[elementID].amount) {
+			$scope.gameState.money += $scope.gameState.elements[elementID].currentVal * $scope.elements[elementID].amount
+			$scope.gameState.elements[elementID].amount -= Math.floor($scope.elements[elementID].amount)
+		}
+	}
+
+	$scope.showCredits = function() {
+		$(function() {
+			$('#credits').modal('show')
+		})
+	}
+
+	var stateJson = localStorage.getItem('state')
+
+	$scope.maxDay = 24
+	var stop
+	var initialTime = 20
+
+	if (stateJson) {
+		$scope.gameState = JSON.parse(stateJson)
+	} else {
+		$scope.resetGameState()
+	}
+
+	$scope.resetTimer()
+	$scope.start()
+}])
+</script>
+</body>
+</html>
